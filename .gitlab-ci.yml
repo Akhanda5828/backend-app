@@ -1,0 +1,22 @@
+stages:
+  - build
+  - docker
+
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+
+build:
+  stage: build
+  image: maven:3.8.4-openjdk-17
+  script:
+    - mvn clean package -DskipTests
+
+docker-build:
+  stage: docker
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
